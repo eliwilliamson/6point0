@@ -3,20 +3,21 @@ import path from "path";
 
 export default {
   module: {
-    loaders: [
+    rules: [
       {
         test: /\.((png)|(eot)|(woff)|(woff2)|(ttf)|(svg)|(gif))(\?v=\d+\.\d+\.\d+)?$/,
-        loader: "file?name=/[hash].[ext]"
+        use: "file?name=/[hash].[ext]"
       },
-      {test: /\.json$/, loader: "json-loader"},
+      {test: /\.json$/, use: "json-loader"},
       {
-        loader: "babel",
+        use: "babel-loader",
         test: /\.js?$/,
-        exclude: /node_modules/,
-        query: {cacheDirectory: true}
+        exclude: /node_modules/
       }
     ]
   },
+
+  mode: 'none',
 
   plugins: [
     new webpack.ProvidePlugin({
@@ -26,8 +27,7 @@ export default {
 
   context: path.join(__dirname, "src"),
   entry: {
-    app: ["./js/app"],
-    cms: ["./js/cms"]
+    app: ["./js/app"]
   },
   output: {
     path: path.join(__dirname, "dist"),

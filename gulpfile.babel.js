@@ -5,7 +5,7 @@ import postcss from "gulp-postcss";
 import cssImport from "postcss-import";
 import neatgrid from "postcss-neat";
 import nestedcss from "postcss-nested";
-import colorfunctions from "postcss-colour-functions";
+import colorfunctions from "postcss-sass-color-functions";
 import hdBackgrounds from "postcss-at2x";
 import cssvars from "postcss-simple-vars-async";
 import cssextend from "postcss-simple-extend";
@@ -24,14 +24,6 @@ const defaultArgs = ["-d", "../dist", "-s", "site", "-v"];
 
 gulp.task("hugo", (cb) => buildSite(cb));
 gulp.task("hugo-preview", (cb) => buildSite(cb, ["--buildDrafts", "--buildFuture"]));
-
-
-gulp.task("build", function(callback) {
-  runSequence(["css", "js", "fonts", "src-root", "images", "hugo"], "index-site");
-});
-gulp.task("build-preview", function(callback) {
-  runSequence(["css", "js", "fonts", "src-root", "images", "hugo-preview"], "index-site");
-});
 
 gulp.task("css", () => (
   gulp.src("./src/css/*.css")
@@ -60,7 +52,7 @@ gulp.task("js", (cb) => {
     cb();
   });
 
-  gulp.src(["./src/js/**/*", "!./src/js/app.js", "!./src/js/cms.js"])
+  gulp.src(["./src/js/**/*", "!./src/js/app.js"])
     .pipe(gulp.dest("./dist/js"))
     .pipe(browserSync.stream())
 });
@@ -83,20 +75,20 @@ gulp.task("images", () => (
     .pipe(browserSync.stream())
 ));
 
-gulp.task("server", ["hugo", "css", "js", "fonts", "src-root", "images"], () => {
+gulp.task('server', gulp.series("hugo", "css", "js", "fonts", "src-root", "images", function(){
   browserSync.init({
     server: {
       baseDir: "./dist"
     },
     notify: false
   });
-  gulp.watch("./src/js/**/*.js", ["js"]);
-  gulp.watch("./src/css/**/*.css", ["css"]);
-  gulp.watch("./src/img/**/*", ["images"]);
-  gulp.watch("./src/fonts/**/*", ["fonts"]);
-  gulp.watch("./src/*", ["src-root"]);
-  gulp.watch("./site/**/*", ["hugo"]);
-});
+  gulp.watch("./src/js/**/*.js", gulp.series('js'));
+  gulp.watch("./src/css/**/*.css", gulp.series('css'));
+  gulp.watch("./src/img/**/*", gulp.series('images'));
+  gulp.watch("./src/fonts/**/*", gulp.series('fonts'));
+  gulp.watch("./src/*", gulp.series('src-root'));
+  gulp.watch("./site/**/*", gulp.series('hugo'));
+}));
 
 gulp.task("index-site", (cb) => {
 
@@ -170,3 +162,6 @@ function buildSite(cb, options) {
     }
   });
 }
+
+gulp.task('build', gulp.series("css", "js", "fonts", "src-root", "images", "hugo", "index-site"));
+gulp.task('build-preview', gulp.series("css", "js", "fonts", "src-root", "images", "hugo-preview", "index-site"));
